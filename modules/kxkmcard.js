@@ -3,7 +3,7 @@ function Kxkmcard ( module ) {
 	if (!module) module = require('../modules.js')().base();
 
 	// attach external process
-	module.setProcess('./modules/bin/kxkmcard-fake');
+	module.setProcess('./modules/bin/hardware6');
 
 	// set Relais
 	module.extends('relais', (data) => {
@@ -45,14 +45,17 @@ function Kxkmcard ( module ) {
 			var cmd = 'setlight ';
 			if (data.strobe && parseInt(data.strobe) > 0) cmd += ' -strob '+parseInt(data.strobe);
 			if (data.fade && parseInt(data.fade) > 0) cmd += ' -fade '+parseInt(data.fade);
-			if (data.rgb) cmd += ' -rgb '	+parseInt(data.rgb[0])
+			if (data.rgb) {
+				data.rgb = data.rgb.split(' ');
+				cmd += ' -rgb '	+parseInt(data.rgb[0])
 								+' '+parseInt(data.rgb[1])
 								+' '+parseInt(data.rgb[2]);
+			}
 			if (data.led10w1) cmd += ' -10w1 '+parseInt(data.led10w1);
 			if (data.led10w2) cmd += ' -10w2 '+parseInt(data.led10w2);
 			module.write(cmd);
 		})
-		.describe('Lights', {strobe: 'int', fade: 'int', rgb: 'rgb', led10w1: 'int', led10w2: 'int'});
+		.describe('Lights', {strobe: 'int', fade: 'int', led10w1: 'int', led10w2: 'int', rgb: 'text'});
 
 	// set Gyro
 	module.extends('gyro', (data) => {
@@ -65,7 +68,7 @@ function Kxkmcard ( module ) {
 		.describe('Gryo', {speed: 'int', strob: 'int', mode: 'int'});
 
 	// INIT Card
-	module.write('initconfig -carteVolt ? -name ? -ip ? -version ? -titreurNbr ? -manualmode ? -status ?');
+	module.write('initconfig -carteVolt ? -name ? -ip ? -version ? -titreurNbr 6 -manualmode ? -status ?');
 
 	return module;
 }
