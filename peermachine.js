@@ -1,13 +1,14 @@
+var os = require('os');
 var bonjour = require('bonjour')();
 var portastic = require('portastic');
 var socketio_server = require('socket.io');
 var socketio_client = require('socket.io-client');
 
-function PeerMachine() 
+function PeerMachine()
 {
     var that = this;
     this.type = 'KPi-peer';
-    this.name = 'nobody';
+    this.name = os.hostname();
     this.port = 0;
     this.server = null;
     this.outputs = {};
@@ -33,12 +34,12 @@ function PeerMachine()
         this.outputs[namespace] = this.server.of(namespace);
         this.clients[namespace] = {};
 
-        this.outputs[namespace].on('connection', function (client) 
+        this.outputs[namespace].on('connection', function (client)
         {
             // New Peer Client declaring himself
-            client.on('iam', function(data) 
+            client.on('iam', function(data)
             {
-                if (!that.clients[namespace].hasOwnProperty(data.peerid)) 
+                if (!that.clients[namespace].hasOwnProperty(data.peerid))
                     that.inform('addclient', {name: data.peerid, space: namespace});
 
                 that.clients[namespace][data.peerid] = client;
@@ -59,7 +60,7 @@ function PeerMachine()
     // OUTPUT CHANNEL: Create a Server and wait for Peers to connect as client
     this.createServer = function(port) {
         this.port = port;
-        this.name = 'KPi peer '+port;
+        this.name += ' '+port;
 
         this.server = socketio_server(port);
         this.addSpace('/execute');
@@ -85,8 +86,8 @@ function PeerMachine()
         // list available peers
         var status = {peers: Object.keys(that.clients)};
 
-        // list available methods in processor 
-        if (this.processor) 
+        // list available methods in processor
+        if (this.processor)
             status.method = Object.getOwnPropertyNames(that.processor).filter(function (p) {
                 return typeof that.processor[p] === 'function';
             });
@@ -133,10 +134,10 @@ function PeerMachine()
     **/
 
     // INPUT CHANNEL: search for PEER servers and connect to receive commands
-    this.connectPeers = function() 
+    this.connectPeers = function()
     {
         // Search for other Peers
-        bonjour.find({ type: this.type }, function (service) 
+        bonjour.find({ type: this.type }, function (service)
         {
             // Connect to PEERS EXECUTE Channel
             that.inputs[service.name] = socketio_client('http://'+service.host+':'+service.port+'/execute');
@@ -158,7 +159,7 @@ function PeerMachine()
         });
     }
 
-    
+
 
     // LINK A PROCESSOR to execute commands
     this.setProcessor = function(processor) {
@@ -168,15 +169,15 @@ function PeerMachine()
 
     // TRANSFER INCOMING MESSAGE TO PROCESSOR
     this.process = function(data) {
-        if (!data.command) 
+        if (!data.command)
             that.answer('from-processor', data, {errorcode: 'command_missing'});
 
-        else if (!this.processor || !that.processor[data.command]) 
+        else if (!this.processor || !that.processor[data.command])
             that.answer('from-processor', data, {errorcode: 'processor_missing'});
 
         else {
             var res = that.processor[data.command](data.data);
-            if (res && res['doAnswer']) 
+            if (res && res['doAnswer'])
                 that.answer('from-processor', data, {result: res});
         }
     }
