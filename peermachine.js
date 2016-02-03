@@ -48,6 +48,7 @@ function PeerMachine()
 
                 that.clients[namespace][data.peerid] = client;
                 that.inform('status', that.status(), data.peerid);
+                console.log('Client connect: '+data.peerid);
             });
 
             // Peer client is gone
@@ -150,7 +151,7 @@ function PeerMachine()
             that.peers[service.name] = 'http://'+service.host+':'+service.port;
 
             // Inform of a new peer
-            that.inform('newpeer', {[service.name]: that.peers[service.name]});
+            that.inform('newpeer', {peer: {[service.name]: that.peers[service.name]}});
 
             // Connect to PEERS EXECUTE Channel
             that.inputs[service.name] = socketio_client(that.peers[service.name]+'/execute');

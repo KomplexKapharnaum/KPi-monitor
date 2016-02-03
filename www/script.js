@@ -14,7 +14,7 @@ function PeerCollection() {
     }
 
     this.update = function() {
-
+      // BUILD / UPDATE DOM
     }
 
     this.size = function() {
@@ -28,6 +28,8 @@ function Peer(url) {
   this.url = url;
   this.io = {};
 
+  console.info('New Peer added: '+this.url);
+
   // Open EXECUTE channel
   this.io['execute'] = io.connect(url+'/execute');
   this.io['execute'].on('connect', function(){
@@ -40,19 +42,24 @@ function Peer(url) {
   this.io['inform'] = io.connect(url+'/inform');
   this.io['inform'].on('connect', function(){
       that.io['inform'].emit('iam', {peerid: 'interface'});
+      console.info('Peer connected: '+that.url);
   });
   this.io['inform'].on('status', function(data) {
     peerCollection.addPeers(data.peers);
   });
   this.io['inform'].on('newpeer', function(data) {
-    peerCollection.addPeers(data);
+    peerCollection.addPeers(data.peer);
   });
+  this.io['inform'].on('disconnect', function() {
+    console.info('Peer disconnected: '+that.url);
+  });
+
 }
 
 var peerCollection = new PeerCollection();
 
 var socket = io.connect();
 socket.on('peers', function (data) {
-  peerCollection.addPeers(data);
+  peerCollection.addPeers(data.peers);
   //if (peerCollection.size() > 0) {socket.disconnect();}
 });
