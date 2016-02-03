@@ -3,6 +3,10 @@ function PeerCollection() {
 
     this.peers = {};
 
+    this.addPeers = function(peers) {
+      for(n in peers) this.add(n, peers[n]);
+    }
+
     this.add = function(name, url) {
       if (this.peers[name]) return;
       this.peers[name] = new Peer(url);
@@ -37,13 +41,18 @@ function Peer(url) {
   this.io['inform'].on('connect', function(){
       that.io['inform'].emit('iam', {peerid: 'interface'});
   });
-  this.io['inform'].on('status', function(data) { console.info(data); });
+  this.io['inform'].on('status', function(data) {
+    peerCollection.addPeers(data.peers);
+  });
+  this.io['inform'].on('newpeer', function(data) {
+    peerCollection.addPeers(data);
+  });
 }
 
 var peerCollection = new PeerCollection();
 
 var socket = io.connect();
 socket.on('peers', function (data) {
-  for(n in data) peerCollection.add(n, data[n]);
-  if (peerCollection.size() > 0) {socket.disconnect();}
+  peerCollection.addPeers(data);
+  //if (peerCollection.size() > 0) {socket.disconnect();}
 });

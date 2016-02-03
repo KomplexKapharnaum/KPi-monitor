@@ -7,13 +7,17 @@ var socketio_client = require('socket.io-client');
 function PeerMachine()
 {
     var that = this;
+
     this.type = 'KPi-peer';
     this.name = os.hostname();
     this.port = 0;
     this.server = null;
     this.outputs = {};
-    this.inputs = {};
     this.clients = {};
+
+    this.inputs = {};
+    this.peers = {};
+
     this.processor = {};
 
     /**
@@ -39,8 +43,8 @@ function PeerMachine()
             // New Peer Client declaring himself
             client.on('iam', function(data)
             {
-                if (!that.clients[namespace].hasOwnProperty(data.peerid))
-                    that.inform('addclient', {name: data.peerid, space: namespace});
+                // if (!that.clients[namespace].hasOwnProperty(data.peerid))
+                //     that.inform('addclient', {name: data.peerid, space: namespace});
 
                 that.clients[namespace][data.peerid] = client;
                 that.inform('status', that.status(), data.peerid);
@@ -51,7 +55,7 @@ function PeerMachine()
                 for (var peerid in that.clients[namespace])
                     if (client.id == that.clients[namespace][peerid].id) {
                         delete that.clients[namespace][peerid];
-                        that.inform('removeclient', {name: peerid, space: namespace});
+                        // that.inform('removeclient', {name: peerid, space: namespace});
                     }
             });
         });
@@ -78,10 +82,13 @@ function PeerMachine()
     // LINKED By somebody: inform complete status
     this.status = function() {
 
-        // list available peers
-        var status = {peers: {}};
+        // list known peers
+        var status = {peers: that.peers};
+
+        // clients
+        status.clients = {};
         for (channel in that.clients)
-          status.peers[channel] = Object.keys(that.clients[channel]);
+          status.clients[channel] = Object.keys(that.clients[channel]);
 
         // list available methods in processor
         if (this.processor)
@@ -136,8 +143,17 @@ function PeerMachine()
         // Search for other Peers
         bonjour.find({ type: this.type }, function (service)
         {
+            // Check if not already known
+            if (that.peers[service.name] === undefined);
+
+            // Add it to known peers list
+            that.peers[service.name] = 'http://'+service.host+':'+service.port;
+
+            // Inform of a new peer
+            if (isNew) that.inform('newpeer', {[service.name]: that.peers[service.name]});
+
             // Connect to PEERS EXECUTE Channel
-            that.inputs[service.name] = socketio_client('http://'+service.host+':'+service.port+'/execute');
+            that.inputs[service.name] = socketio_client(that.peers[service.name]+'/execute');
 
             // Identify myself
             that.inputs[service.name].on('connect', function(){
