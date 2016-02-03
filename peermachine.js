@@ -60,14 +60,10 @@ function PeerMachine()
     // OUTPUT CHANNEL: Create a Server and wait for Peers to connect as client
     this.createServer = function(port) {
         this.port = port;
-        this.name += ' '+port;
 
         this.server = socketio_server(port);
         this.addSpace('/execute');
         this.addSpace('/inform');
-
-        // Inform Status to already connected interfaces
-        this.inform('status', this.status());
 
         // Advertize Server
         bonjour.publish({ name: this.name, type: this.type, port: this.port });
@@ -81,10 +77,11 @@ function PeerMachine()
 
     // LINKED By somebody: inform complete status
     this.status = function() {
-        if (!this.ready()) return null;
 
         // list available peers
-        var status = {peers: Object.keys(that.clients)};
+        var status = {peers: {}};
+        for (channel in that.clients)
+          status.peers[channel] = Object.keys(that.clients[channel]);
 
         // list available methods in processor
         if (this.processor)
@@ -92,18 +89,18 @@ function PeerMachine()
                 return typeof that.processor[p] === 'function';
             });
 
+        //console.log(status);
         return status;
     }
 
     // INFORM send on /inform channel
     this.inform = function(msg, data, to) {
         this.send('/inform', msg, data, to);
-    	console.log('INFORM: ',msg,data);
     }
 
     // COMMAND send on /execute channel
     this.execute = function(cmd, dat, to) {
-        this.send('/execute', 'to-processor', {command: cmd, data:dat}, to);
+        this.send('/execute', 'do', {command: cmd, data:dat}, to);
     }
 
     // ANSWER to sender
@@ -148,12 +145,12 @@ function PeerMachine()
             });
 
             // transfer incoming to local processor
-            that.inputs[service.name].on('to-processor', function(data) {
+            that.inputs[service.name].on('do', function(data) {
                 that.process(data);
             });
 
             // answer received from remote processor
-            that.inputs[service.name].on('from-processor', function(data) {
+            that.inputs[service.name].on('did', function(data) {
                 console.log(data);
             });
         });
@@ -170,15 +167,15 @@ function PeerMachine()
     // TRANSFER INCOMING MESSAGE TO PROCESSOR
     this.process = function(data) {
         if (!data.command)
-            that.answer('from-processor', data, {errorcode: 'command_missing'});
+            that.answer('did', data, {errorcode: 'command_missing'});
 
         else if (!this.processor || !that.processor[data.command])
-            that.answer('from-processor', data, {errorcode: 'processor_missing'});
+            that.answer('did', data, {errorcode: 'processor_missing'});
 
         else {
             var res = that.processor[data.command](data.data);
             if (res && res['doAnswer'])
-                that.answer('from-processor', data, {result: res});
+                that.answer('did', data, {result: res});
         }
     }
 }
