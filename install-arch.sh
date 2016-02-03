@@ -1,3 +1,3 @@
 #!/bin/bash
-pacman -Sy --noconfirm nodejs
+pacman -Syu --needed --noconfirm nodejs npm
 npm install

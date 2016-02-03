@@ -97,6 +97,7 @@ function PeerMachine()
     // INFORM send on /inform channel
     this.inform = function(msg, data, to) {
         this.send('/inform', msg, data, to);
+    	console.log('INFORM: ',msg,data);
     }
 
     // COMMAND send on /execute channel
