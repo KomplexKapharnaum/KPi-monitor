@@ -1,0 +1,25 @@
+{
+  "name": "kpi-monitor",
+  "version": "1.0.0",
+  "description": "KPi Base app with status monitoring and AVAHI/Bonjour Peers &amp; services discovering",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KomplexKapharnaum/KPi-monitor.git"
+  },
+  "author": "Hemisphere Project",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/KomplexKapharnaum/KPi-monitor/issues"
+  },
+  "homepage": "https://github.com/KomplexKapharnaum/KPi-monitor#readme",
+  "dependencies": {
+    "bonjour": "^3.2.0",
+    "express": "^4.13.4",
+    "portastic": "^1.0.1",
+    "socket.io": "^1.4.5"
+  }
+}

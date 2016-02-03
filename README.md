@@ -1,2 +1,3 @@
-# KPi-monitor
-KPi Base app with status monitoring and AVAHI/Bonjour Peers &amp; services discovering
+# KPi-peers
+P2P Serverless discovery and action distribution
+Node.js / Bonjour
