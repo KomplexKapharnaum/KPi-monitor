@@ -150,7 +150,7 @@ function PeerMachine()
             that.peers[service.name] = 'http://'+service.host+':'+service.port;
 
             // Inform of a new peer
-            if (isNew) that.inform('newpeer', {[service.name]: that.peers[service.name]});
+            that.inform('newpeer', {[service.name]: that.peers[service.name]});
 
             // Connect to PEERS EXECUTE Channel
             that.inputs[service.name] = socketio_client(that.peers[service.name]+'/execute');
