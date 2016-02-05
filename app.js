@@ -6,9 +6,9 @@ var BASEPATH = __dirname + '/www/';
 var ActionParser = require('./actionparser.js')();
 
 // PEER MACHINE
-var PeerMachine = require('./peermachine.js')();
-PeerMachine.setProcessor(ActionParser);
-PeerMachine.startServer({ min : 9000, max : 10000 }, true);
+var PeerMachine = require('./peermachineMono.js')();
+//PeerMachine.setProcessor(ActionParser);
+PeerMachine.start({ min : 9000, max : 10000 });
 
 // function hello() {
 // 	PeerMachine.execute('log', 'YO!', 'KPi peer 9001');
@@ -17,4 +17,4 @@ PeerMachine.startServer({ min : 9000, max : 10000 }, true);
 
 //WEBSERVER
 var WebServer = require('./webserver.js')();
-WebServer.start(PORT_WEBSERVER, BASEPATH);
+//WebServer.start(PORT_WEBSERVER, BASEPATH);

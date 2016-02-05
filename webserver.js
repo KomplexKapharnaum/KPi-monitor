@@ -49,10 +49,10 @@ function WebServer()
           // });
 
           client.emit('peers', {peers: that.peers});
-          console.log('WEB: interface connected');
+          console.log('WEBSERVER: interface connected');
 
           client.on('disconnect', function () {
-              console.log('WEB: interface disconnected');
+              console.log('WEBSERVER: interface disconnected');
           });
       });
       console.log ('WEBSERVER: started on port '+that.port);
