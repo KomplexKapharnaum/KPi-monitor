@@ -20,7 +20,6 @@ function Channel(device, namespace) {
     {
         // New Slave trying to connect
         client.on('iam', function(name) {
-            console.log(that.masters[name]);
             var slave = {
                     io: client,
                     name: name,
@@ -75,6 +74,7 @@ function Channel(device, namespace) {
                     if (that.slaves[service.name].status == 'accepted') {
                         master.status = 'dropped';
                         master.io.disconnect();
+                        console.log('late drop');
                     }
             });
             master.io.on('dropped', function(){
