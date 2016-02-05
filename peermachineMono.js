@@ -58,21 +58,20 @@ function Channel(device, namespace) {
                     io: socketio_client('http://'+service.name+that.channel),
                     statut: 'connecting',
                     name: service.name,
-                    drop: function() { this.status = 'dropped'; this.io.disconnect(); },
-                    intro: function() { this.io.emit('iam', that.device.name);}
+                    drop: function() { this.status = 'dropped'; this.io.disconnect(); }
                 }
             socketio_wildcard(socketio_client.Manager)(master.io);
 
-            master.io.on('connect', master.intro);
+            master.io.on('connect', function(){ master.io.emit('iam', that.device.name); });
             master.io.on('dropped', master.drop);
             master.io.on('accepted', function(){
                 master.status = 'accepted';
 
                 // Check if my master did not already accept him as slave
-                if (that.slaves[service.name]
-                        && that.slaves[service.name].status != 'dropped') {
-                            master.drop()
-                            console.log('late drop');
+                if (that.slaves[service.name])
+                    if (that.slaves[service.name].status != 'dropped') {
+                        master.drop()
+                        console.log('late drop');
                     }
             });
 
