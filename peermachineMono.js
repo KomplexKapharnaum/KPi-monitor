@@ -40,7 +40,7 @@ function Channel(device, namespace) {
             for (var name in that.slaves)
                 if (client.id == that.slaves[name].io.id) {
                     delete that.slaves[name];
-                    console.log('Slave disconnected: '+name);
+                    // console.log('Slave disconnected: '+name);
                     // that.inform('removeclient', {name: peerid, space: namespace});
                 }
         });
@@ -71,7 +71,7 @@ function Channel(device, namespace) {
                 // Check if my master did not already accept him as slave
                 if (that.slaves[service.name] && that.slaves[service.name].status != 'dropped') {
                         master.drop()
-                        console.log('late drop');
+                        //console.log('late drop');
                 }
                 else master.status = 'accepted';
             });

@@ -17,4 +17,4 @@ PeerMachine.start({ min : 9000, max : 10000 });
 
 //WEBSERVER
 var WebServer = require('./webserver.js')();
-//WebServer.start(PORT_WEBSERVER, BASEPATH);
+WebServer.start(PORT_WEBSERVER, BASEPATH);
