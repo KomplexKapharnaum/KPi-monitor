@@ -50,6 +50,9 @@ function Channel(device, namespace) {
     this.connectOthers = function() {
         bonjour.find({ type: this.device.type }, function (service)
         {
+            // Check if slave exist
+            if (that.slaves[service.name] && that.slaves[service.name].status != 'dropped') return;
+
             // Check if not already known
             if (that.masters[service.name] || service.name == that.device.name) return;
 
