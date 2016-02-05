@@ -65,14 +65,12 @@ function Channel(device, namespace) {
             master.io.on('connect', function(){ master.io.emit('iam', that.device.name); });
             master.io.on('dropped', master.drop);
             master.io.on('accepted', function(){
-                master.status = 'accepted';
-
                 // Check if my master did not already accept him as slave
-                if (that.slaves[service.name])
-                    if (that.slaves[service.name].status != 'dropped') {
+                if (that.slaves[service.name] && that.slaves[service.name].status != 'dropped') {
                         master.drop()
                         console.log('late drop');
-                    }
+                }
+                else master.status = 'accepted';
             });
 
             that.enrole(master);
