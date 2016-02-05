@@ -20,8 +20,10 @@ function Channel(device, namespace) {
     {
         // New Slave trying to connect
         client.on('iam', function(name) {
+            console.log(that.masters[name]);
             var slave = {
                     io: client,
+                    name: name,
                     status: (that.masters[name] ? 'dropped' : 'accepted') // Accept if master do not exist already
                 };
 
@@ -60,6 +62,7 @@ function Channel(device, namespace) {
             var master = {
                     io: socketio_client('http://'+service.name+that.channel),
                     statut: 'connecting',
+                    name: service.name
                 }
             socketio_wildcard(socketio_client.Manager)(master.io);
 
@@ -68,6 +71,11 @@ function Channel(device, namespace) {
             });
             master.io.on('accepted', function(){
                 master.status = 'accepted';
+                if (that.slaves[service.name])
+                    if (that.slaves[service.name].status == 'accepted') {
+                        master.status = 'dropped';
+                        master.io.disconnect();
+                    }
             });
             master.io.on('dropped', function(){
                 master.status = 'dropped';
