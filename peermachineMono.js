@@ -58,7 +58,7 @@ function Channel(device, namespace) {
                     io: socketio_client('http://'+service.name+that.channel),
                     statut: 'connecting',
                     name: service.name,
-                    drop: function() { this.status = 'dropped'; this.io.disconnect(); }
+                    drop: function() { this.status = 'dropped'; this.io.disconnect(); },
                     intro: function() { this.io.emit('iam', that.device.name);}
                 }
             socketio_wildcard(socketio_client.Manager)(master.io);
