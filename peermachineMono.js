@@ -50,10 +50,6 @@ function Channel(device, namespace) {
     this.connectOthers = function() {
         bonjour.find({ type: this.device.type }, function (service)
         {
-            // Check if my master did not already accept him as slave
-            if (that.slaves[service.name])
-                if (that.slaves[service.name].status == 'accepted') return;
-
             // Check if not already known
             if (that.masters[service.name] || service.name == that.device.name) return;
 
@@ -61,7 +57,8 @@ function Channel(device, namespace) {
             var master = {
                     io: socketio_client('http://'+service.name+that.channel),
                     statut: 'connecting',
-                    name: service.name
+                    name: service.name,
+                    drop: function() { this.status = 'dropped'; this.io.disconnect(); }
                 }
             socketio_wildcard(socketio_client.Manager)(master.io);
 
@@ -70,17 +67,15 @@ function Channel(device, namespace) {
             });
             master.io.on('accepted', function(){
                 master.status = 'accepted';
+
+                // Check if my master did not already accept him as slave
                 if (that.slaves[service.name])
-                    if (that.slaves[service.name].status == 'accepted') {
-                        master.status = 'dropped';
-                        master.io.disconnect();
+                    if (that.slaves[service.name].status != 'dropped') {
+                        master.drop();
                         console.log('late drop');
                     }
             });
-            master.io.on('dropped', function(){
-                master.status = 'dropped';
-                master.io.disconnect();
-            });
+            master.io.on('dropped', master.drop);
             that.enrole(master);
         });
     }
