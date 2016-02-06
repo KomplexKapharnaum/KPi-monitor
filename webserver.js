@@ -21,7 +21,7 @@ function WebServer()
             // Add it to known peers list
             that.peers[service.name] = 'http://'+service.host+':'+service.port;
             // Inform clients
-            if (that.ready()) that.io.emit('peers', {peers: that.peers});
+            if (that.ready()) that.io.emit('peers', Object.keys(that.peers));
         });
 
         // Start web server
@@ -48,7 +48,7 @@ function WebServer()
           //
           // });
 
-          client.emit('peers', {peers: that.peers});
+          client.emit('peers', Object.keys(that.peers));
           console.log('WEBSERVER: interface connected');
 
           client.on('disconnect', function () {
