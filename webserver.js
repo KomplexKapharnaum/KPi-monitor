@@ -43,16 +43,9 @@ function WebServer()
       this.io = socketio(app.listen(that.port));
       this.io.on('connection', function (client)
       {
-          // Web interface command is handled as "send to Machines"
-          // client.on('do', function (data) {
-          //
-          // });
-
           client.emit('peers', Object.keys(that.peers));
-          console.log('WEBSERVER: interface connected');
-
           client.on('disconnect', function () {
-              console.log('WEBSERVER: interface disconnected');
+              //console.log('WEBSERVER: interface disconnected');
           });
       });
       console.log ('WEBSERVER: started on port '+that.port);
