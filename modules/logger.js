@@ -1,7 +1,5 @@
 
-function Logger(id) {
-	
-	this.id = id;
+function Logger() {
 
 	this.do = function(data) {
 		console.log('default logger:'+data);
