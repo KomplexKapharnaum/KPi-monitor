@@ -3,15 +3,12 @@ var PORT_WEBSERVER = 8088;
 var BASEPATH = __dirname + '/www/';
 
 // Modules
-var Logger = require('./modules/logger.js');
-//var Vlc = require('./modules/vlc.js');
-var Kxkmcard = require('./modules/kxkmcard.js');
+var Modules = require('./modules.js')();
 
 // PEER MACHINE
 var PeerMachine = require('./peermachine.js')();
-PeerMachine.attach( '/logger', new Logger() );
-PeerMachine.attach( '/kxkmcard', new Kxkmcard() );
-//PeerMachine.attach( '/video', new Vlc() );
+PeerMachine.attach( '/kxkmcard', Modules.load('kxkmcard') );
+PeerMachine.attach( '/titreur', Modules.load('titreur') );
 PeerMachine.start({ min : 9000, max : 10000 });
 
 

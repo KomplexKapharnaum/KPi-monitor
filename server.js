@@ -55,18 +55,16 @@ function P2P(channel) {
     // Search for other MASTERS
     bonjour.find({ type: channel.device.type }, function (service)
     {
-        // Inform
-        var url = 'http://'+service.name;
-
         // Check if a connection already exist
         if (channel.isConnectedTo(service.name)) return;
         else if (service.name == channel.device.name) return;
 
         // Connect to master
         var master = {
-                io: socketio_client(url+channel.channel),
+                io: socketio_client(service.host+channel.channel),
                 statut: STATE_CONNECTING,
                 name: service.name,
+                url: service.host,
                 type: channel.device.type,
                 drop: function() { this.status = STATE_DROPPED; this.io.disconnect(); },
                 accept: function() { this.status = STATE_ACCEPTED; channel.listen(this); },
@@ -74,14 +72,16 @@ function P2P(channel) {
             }
         socketio_wildcard(socketio_client.Manager)(master.io);
 
-        master.io.on('connect', function(){ master.io.emit('iam', {name: channel.device.name, type: channel.device.type}); });
+        master.io.on('connect', function(){ master.io.emit('iam', 
+            {name: channel.device.name, url: channel.device.url, type: channel.device.type}); });
+
         master.io.on('drop',    function() { master.drop() });
         master.io.on('accept',  function(){
             if (channel.isConnectedTo(service.name)) master.drop();
             else master.accept();
         });
         channel.masters[service.name] = master;
-        channel.emitEvent('/state/newserver', master.name);
+        channel.emitEvent('/state/newserver', {[master.name]: master.url});
     });
 
     return channel;
@@ -106,6 +106,7 @@ function Channel(mainserver, namespace) {
             var slave = {
                     io: client,
                     name: cli.name,
+                    url: cli.url,
                     type: cli.type,
                     status: STATE_CONNECTING,
                     drop: function() { this.status = STATE_DROPPED; this.io.emit('drop'); },
@@ -119,7 +120,7 @@ function Channel(mainserver, namespace) {
             // register that slave
             that.slaves[cli.name] = slave;
 
-            that.emitEvent('/state/newclient', slave.name);
+            that.emitEvent('/state/newclient', {[slave.name]: slave.url});
         });
 
         // Slave is gone
@@ -215,6 +216,7 @@ function Server(port, type)
 {
     var that = this;
     this.type = type;
+    this.url = 'http://'+getIPAddress()+':'+port;
     this.name = os.hostname()+':'+port;
     this.port = port;
     this.channels = {};
@@ -234,9 +236,22 @@ function Server(port, type)
 
     this.advertize = function() {
         // Advertize Device
-        bonjour.publish({ name: this.name, type: this.type, port: this.port });
-        console.log ('PEERMACHINE: "'+this.name+'" started on port '+this.port);
+        bonjour.publish({ name: this.name, host: this.url, type: this.type, port: this.port });
+        console.log ('PEERMACHINE: "'+this.name+'" started on '+this.url);
     }
+}
+
+function getIPAddress() {
+  var interfaces = require('os').networkInterfaces();
+  for (var devName in interfaces) {
+    var iface = interfaces[devName];
+    for (var i = 0; i < iface.length; i++) {
+      var alias = iface[i];
+      if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal)
+        return alias.address;
+    }
+  }
+  return '0.0.0.0';
 }
 
 var exports = module.exports = Server;

@@ -31,11 +31,12 @@ function PeerMachine()
             
             // inform new RADIO client of Machine status (known peers and methods)
             radio.on('/state/newclient', function(ev, cli) {
-                var status = {
-                    peers: Object.keys(p2p.activePeers()),
-                    methods: that.getMethods()
-                };
-                radio.send('/status', status, cli);
+                
+                var status = { peers: {}, methods: that.getMethods() };
+                var peers = p2p.activePeers();
+                for (var name in peers) status.peers[name] = peers[name].url;
+                //console.log(status);
+                radio.send('/status', status, Object.keys(cli)[0]);
             });
 
             p2p.on('/output', function(cmd, data) {
@@ -47,31 +48,26 @@ function PeerMachine()
         });
     }
 
-    
-
-    this.process = function(path, message) {
-        var cmd = path.split('/');  // cmd[1] is the processor id, cmd[2] is the method call
-        if (!cmd[2]) cmd[2] = 'do'; // default method if none provided
-        for (var proc of that.processors) 
-            if (proc._procid == '/'+cmd[1] && proc.hasOwnProperty(cmd[2])) {
-                var ans = proc[ cmd[2] ](message.data);
-            }
-        //console.log('CMD: '+path+' '+JSON.stringify(message.data));
-    }
-
+    // attach new module as processor
     this.attach = function(id, object) {
         object._procid = id;
         this.processors.push(object);
     }
 
+    // transmit command to processors
+    this.process = function(path, message) {
+        var cmd = path.split('/');  // cmd[1] is the processor id, cmd[2] is the method call
+        if (!cmd[2]) cmd[2] = 'default'; // default method if none provided
+        for (var proc of that.processors) 
+            if (proc._procid == '/'+cmd[1]) proc.do(cmd[2], message.data);
+        //console.log('CMD: '+path+' '+JSON.stringify(message.data));
+    }
+
     // list available methods in processors
     this.getMethods = function() {
         var methods = {};
-        for (var proc of this.processors) {
-            if (! methods[ proc._procid ]) methods[ proc._procid ] = [];
-            for (var p in proc) 
-                if (typeof proc[p] === 'function' && p != 'do') methods[ proc._procid ].push(p);
-        }
+        for (var proc of this.processors) 
+            methods[ proc._procid ] = proc.description();
         return methods;
     }
 

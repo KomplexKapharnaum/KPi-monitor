@@ -2,3 +2,48 @@ body {
 	background: black;
 	color: white;
 }
+
+h3 {
+	margin: 5px;
+}
+
+.peer {
+	border: 1px solid #555;
+	display: inline-block;
+	vertical-align: top;
+	margin: 4px;
+}
+
+/* DEAD */
+.peer .moduleslist .moduleBody {
+	display: none;
+}
+.peer h3 {
+	color: red;
+}
+
+/* ALIVE */
+.peerActive .moduleslist .moduleBody {
+	display: block;
+}
+.peerActive h3 {
+	color: green;
+}
+
+
+.module {
+	vertical-align: top;
+	display: inline-block;
+	margin: 4px;
+}
+
+.module h4 {
+	margin: 0px;
+	background-color: #333;
+	padding: 3px;
+}
+
+.moduleBody {
+	padding: 5px;
+	background-color: #555;
+}

@@ -19,9 +19,10 @@ function WebServer()
         // Search for Peers
         bonjour.find({ type: 'KPi-peer' }, function (service) {
             // Add it to known peers list
-            that.peers[service.name] = 'http://'+service.host+':'+service.port;
+            that.peers[service.name] = service.host;
+            //console.log(that.peers);
             // Inform clients
-            if (that.ready()) that.io.emit('peers', Object.keys(that.peers));
+            if (that.ready()) that.io.emit('peers', that.peers);
         });
 
         // Start web server
@@ -43,7 +44,7 @@ function WebServer()
       this.io = socketio(app.listen(that.port));
       this.io.on('connection', function (client)
       {
-          client.emit('peers', Object.keys(that.peers));
+          client.emit('peers', that.peers);
           client.on('disconnect', function () {
               //console.log('WEBSERVER: interface disconnected');
           });
