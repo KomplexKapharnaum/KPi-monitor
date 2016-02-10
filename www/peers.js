@@ -1,7 +1,7 @@
 
 function widget (id, type) {
   if (type == 'toggle') return $('<input type="checkbox" name="'+id+'" value="1" placeholder="'+id+'">');
-  else if (type == 'text') return $('<input type="text" name="'+id+'" size="10" value="" placeholder="'+id+'">');
+  else if (type == 'text') return $('<br /><input type="text" name="'+id+'" size="20" value="" placeholder="'+id+'">');
   else if (type == 'int') return $('<input type="text" name="'+id+'" size="1" value="" placeholder="'+id+'">');
 }
 
@@ -60,6 +60,7 @@ function PeerCollection( placeholder ) {
     }
 
     this.starter();
+    //programmation2@klein-decoupe-service.fr
 }
 
 function Peer(collec, name, url) {
@@ -73,21 +74,30 @@ function Peer(collec, name, url) {
 
   this.dom = $('<div id="'+name+'" class="peer"><h3>.:: '+name+' ::.</h3><span class="moduleslist"></span></div>');
 
-
   this.update = function(methods) {
     var span = this.dom.find('.moduleslist');
     span.empty();
+
+    // modules
     for (var path in methods) {
+      
       var module = $('<div class="module"><h4>'+path+'</h4></div>').appendTo(span);
       var moduleBody = $('<div class="moduleBody"></div>').appendTo(module);
-      for (var action in methods[path]) {
+      
+      // actions
+      for (var action in methods[path]) {    
+
         var act = methods[path][action];
-        var field = $('<form class="action">'+act.label+': </form>').appendTo(moduleBody);
+        var field = $('<form class="action">'+act.label+'&#09;</form>').appendTo(moduleBody);
         field.data('path', path+'/'+action);
+        
+        // add parameters
         for (var arg in act.args) field.append( widget(arg, act.args[arg]) );
         $('<button type="submit" class="execute">GO</button>').appendTo(field);
+        
+        // On validate action
         field.submit(function(e){
-            e.preventDefault(); //Prevent the normal submission action
+            e.preventDefault();
             var data = {};
             for (var input of $(this).serializeArray()) data[ input.name ] = input.value;
             that.io['execute'].emit($(this).data('path'), {data:data});
@@ -96,15 +106,6 @@ function Peer(collec, name, url) {
     }
   }
   
-  this.dom.find(".play").on('click', function() {
-    //that.io['execute'].emit('/video/play', {data:'/home/mgr/Videos/Test/trailer_720p.mov'});
-    that.io['execute'].emit('/kxkmcard/setrelais', {data:true});
-  });
-
-  this.dom.find(".stop").on('click', function() {
-    //that.io['execute'].emit('/video/stop');
-    that.io['execute'].emit('/kxkmcard/setrelais', {data:false});
-  });
   //console.info('New Peer added: '+this.url);
 
   //Open EXECUTE channel

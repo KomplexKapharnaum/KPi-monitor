@@ -16,12 +16,9 @@ function WebServer()
         this.port = port;
         this.basepath = basepath;
 
-        // Search for Peers
+        // Search for Peers / add to list / inform ifaces
         bonjour.find({ type: 'KPi-peer' }, function (service) {
-            // Add it to known peers list
             that.peers[service.name] = service.host;
-            //console.log(that.peers);
-            // Inform clients
             if (that.ready()) that.io.emit('peers', that.peers);
         });
 

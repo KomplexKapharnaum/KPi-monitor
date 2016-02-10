@@ -242,7 +242,7 @@ function Server(port, type)
 }
 
 function getIPAddress() {
-  var interfaces = require('os').networkInterfaces();
+  var interfaces = os.networkInterfaces();
   for (var devName in interfaces) {
     var iface = interfaces[devName];
     for (var i = 0; i < iface.length; i++) {
@@ -251,7 +251,7 @@ function getIPAddress() {
         return alias.address;
     }
   }
-  return '0.0.0.0';
+  return os.hostname();
 }
 
 var exports = module.exports = Server;
