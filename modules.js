@@ -15,43 +15,46 @@ function action (path, fn) {
 function BaseModule () {
 	var that = this;
 	
-	this.methods = {};
-	this.process = null;
+	this._methods = {};
+	this._process = null;
+	this._events = null;
 
 	this.do = function (name, data) {
-		if (name && this.methods[name]) this.methods[name].fn(data);
+		if (name && this._methods[name]) this._methods[name].fn(data);
 		else this.default(data);
 	}
 
 	this.extends = function (name, fn) {
-		this.methods[name] = new action(name, fn);
-		return this.methods[name];
+		this._methods[name] = new action(name, fn);
+		return this._methods[name];
 	}
 
 	this.description = function() {
 		var desc = {};
-		for (var name in this.methods) desc[name] = {
-				label: this.methods[name].label,
-				args: this.methods[name].args
+		for (var name in this._methods) desc[name] = {
+				label: this._methods[name].label,
+				args: this._methods[name].args
 			}
 		return desc;
 	}
 
 	this.setProcess = function(cmd, args) 
 	{
-		this.process = spawn(cmd, args);
-		this.process.stdin.setEncoding('utf-8');
-		this.process.stdout.on('data', that.read);
+		this._process = spawn(cmd, args);
+		this._process.stdin.setEncoding('utf-8');
+		this._process.stdout.on('data', that.read);
 	}
 
 	// Write to process
 	this.write = function(msg) {
-		if (this.process) this.process.stdin.write(msg+'\n');
+		if (this._process) this._process.stdin.write(msg+'\n');
 	}
 
 	// Read from process
 	this.read = function(msg) {
-		console.log('module says: '+msg);
+		msg = String.fromCharCode.apply(null, new Uint16Array(msg));
+		that.emit('/stdout', msg);
+		//console.log('module says: '+msg);
 	}
 
 	// Default action
@@ -59,10 +62,15 @@ function BaseModule () {
 		console.log('default action: '+data);
 	};
 
+	this.emit = function(event, data) {
+        if (this._events) this._events.send(event, data);
+    };
 }
 
-function Module () {
+function Module (name) {
 
+	if (name) return require('./modules/'+name+'.js')(base);
+	else return base;
 	this.load = function(name) {
 		var base = this.base();
 		if (name) return require('./modules/'+name+'.js')(base);
@@ -74,4 +82,7 @@ function Module () {
 	}
 }
 
-var exports = module.exports = function() {return new Module()};
+var exports = module.exports = function(name) {
+	if (name) return require('./modules/'+name+'.js')(new BaseModule());
+	else return new BaseModule();
+};

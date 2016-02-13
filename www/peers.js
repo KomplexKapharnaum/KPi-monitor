@@ -1,10 +1,24 @@
 
+const P2P_MODE = true;
+const DEVICENAME = 'inerface';
+
 function widget (id, type) {
   if (type == 'toggle') return $('<input type="checkbox" name="'+id+'" value="1" placeholder="'+id+'">');
   else if (type == 'text') return $('<br /><input type="text" name="'+id+'" size="20" value="" placeholder="'+id+'">');
   else if (type == 'int') return $('<input type="text" name="'+id+'" size="1" value="" placeholder="'+id+'">');
 }
 
+function connect(url) {
+  var con = io.connect(url);
+  con.on('connect', function(){
+      this.emit('iam', {name: DEVICENAME, type: 'interface'});
+  });
+  return con;
+}
+
+/*****************
+** PEER COLLECTION *
+******************/
 function PeerCollection( placeholder ) {
     var that = this;
     this.peers = {};
@@ -48,7 +62,8 @@ function PeerCollection( placeholder ) {
     this.starter = function() {
       this.socket = io.connect();
       this.socket.on('peers', function (peers) {
-        if (!that.alive()) {
+        // Disconnect webserver if P2P mode enabled
+        if (!that.alive() || !P2P_MODE) {
           console.info('catching back webserver');
           that.addPeers(peers);
         }
@@ -63,6 +78,9 @@ function PeerCollection( placeholder ) {
     //programmation2@klein-decoupe-service.fr
 }
 
+/*****************
+** PEER *********
+******************/
 function Peer(collec, name, url) {
   var that = this;
 
@@ -81,68 +99,41 @@ function Peer(collec, name, url) {
     // modules
     for (var path in methods) {
       
-      var module = $('<div class="module"><h4>'+path+'</h4></div>').appendTo(span);
-      var moduleBody = $('<div class="moduleBody"></div>').appendTo(module);
-      
-      // actions
-      for (var action in methods[path]) {    
-
-        var act = methods[path][action];
-        var field = $('<form class="action">'+act.label+'&#09;</form>').appendTo(moduleBody);
-        field.data('path', path+'/'+action);
-        
-        // add parameters
-        for (var arg in act.args) field.append( widget(arg, act.args[arg]) );
-        $('<button type="submit" class="execute">GO</button>').appendTo(field);
-        
-        // On validate action
-        field.submit(function(e){
-            e.preventDefault();
-            var data = {};
-            for (var input of $(this).serializeArray()) data[ input.name ] = input.value;
-            that.io['execute'].emit($(this).data('path'), {data:data});
-        });
-      }
+      var module = new Module(path, methods[path], that.io['/peer'], this.url);
+      module.dom.appendTo(span);
     }
   }
   
   //console.info('New Peer added: '+this.url);
 
   //Open EXECUTE channel
-  this.io['execute'] = io.connect(url+'/peer');
-  this.io['execute'].on('connect', function(){
-      that.io['execute'].emit('iam', {name: 'interface', type: 'interface'});
-  });
-  //this.io['execute'].on('do', function(data) { console.info(data); });
-  //this.io['execute'].on('did', function(data) { console.info(data); });
+  this.io['/peer'] = connect(url+'/peer');
 
-  // Open INFORM channel
-  this.io['inform'] = io.connect(url+'/info');
-  this.io['inform'].on('connect', function(){
-      that.io['inform'].emit('iam', {name: 'interface', type: 'interface'} );
-      //console.info('Peer connected: '+that.url);
-  });
-  this.io['inform'].on('accept', function(data) {
-      //console.info('Peer accepted: '+that.url);
-      that.io['inform'].emit('getstatus');
+  // Open event channel
+  this.io['/event/peer'] = connect(url+'/event/peer');
+  
+  this.io['/event/peer'].on('accept', function(data) {
       that.isalive = true;
       that.onStateChange(that);
   });
-  this.io['inform'].on('/status', function(message) {
-    //console.info('STATUS '+JSON.stringify(message.data));
-    
+
+  this.io['/event/peer'].on('/status', function(message) {
+    //console.info('STATUS '+JSON.stringify(message.data));  
     that.update(message.data.methods);
 
     if (message.data.peers.length > 0)
       that.collec.addPeers(message.data.peers);
   });
-  this.io['inform'].on('/newclient', function(message) {
+
+  this.io['/event/peer'].on('/newclient', function(message) {
     that.collec.addPeers(message.data);
   });
-  this.io['inform'].on('/newserver', function(message) {
+  
+  this.io['/event/peer'].on('/newserver', function(message) {
     that.collec.addPeers(message.data);
   });
-  this.io['inform'].on('disconnect', function() {
+  
+  this.io['/event/peer'].on('disconnect', function() {
     //console.info('Peer disconnected: '+that.url);
     that.isalive = false;
     that.onStateChange(that);
@@ -150,6 +141,47 @@ function Peer(collec, name, url) {
 
   this.onStateChange = function(el) {};
   this.alive = function() {return that.isalive;};
+}
+
+/*****************
+** MODULE BLOCK **
+******************/
+function Module(path, methods, output, peerurl) {
+  var that = this;
+  this.output = output;
+  this.path = path;
+  this.dom = $('<div class="module"><h4>'+path+'</h4></div>');
+  this.body = $('<div class="moduleBody"></div>').appendTo(this.dom);
+
+  this.addAction = function(action, act) {
+    var field = $('<form class="action">'+act.label+'&#09;</form>').appendTo(this.body);
+    field.data('path', path+'/'+action);
+
+    // add parameters
+    for (var arg in act.args) field.append( widget(arg, act.args[arg]) );
+    $('<button type="submit" class="execute">GO</button>').appendTo(field);
+
+    // On validate action
+    field.submit(function(e){
+        e.preventDefault();
+        var data = {};
+        for (var input of $(this).serializeArray()) data[ input.name ] = input.value;
+        output.emit( $(this).data('path'), {data:data});
+    });
+  }
+
+  // register actions
+  for (var action in methods) 
+    this.addAction( action, methods[action] );
+
+  // attach event io
+  this.input = connect(peerurl+'/event'+path);
+  this.input.on('/stdout', function(message) {
+    console.info('/event'+path+'/stdout ',message.data);
+  });
+
+  console.info('Created Module '+path);
+
 }
 
 $(function() {

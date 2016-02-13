@@ -48,7 +48,7 @@ function P2P(channel) {
         return peers;
     }
 
-    channel.activePeers = function() {
+    channel.activeLinks = function() {
         return channel.getClients(STATE_ACCEPTED, channel.device.type);
     }
 
@@ -178,6 +178,10 @@ function Channel(mainserver, namespace) {
         return peers;
     }
 
+    this.activeLinks = function() {
+        return this.getClients(STATE_ACCEPTED, this.device.type);
+    }
+
     this.send = function(cmd, payload, to) {
         
         if (cmd[0] != '/') console.error('Invalid command: '+cmd);
@@ -194,14 +198,14 @@ function Channel(mainserver, namespace) {
         // Send to all
         if (!to) {
             for (var name in peers) peers[name].io.emit(cmd, message);
-            that.emitEvent('/command'+cmd, message);
+            that.emitEvent('/input'+cmd, message);
         }
 
         // Send to device
         else if (peers[to]) peers[to].io.emit(cmd, message);
-        else if (to == that.name) that.emitEvent('/command'+cmd, message);
+        else if (to == that.name) that.emitEvent('/input'+cmd, message);
 
-        //console.log('SEND: ', cmd, message);
+        //console.log('SEND: ', cmd, message, Object.keys(that.getClients()));
         that.emitEvent('/output'+cmd, message);
     }
 
@@ -226,6 +230,7 @@ function Server(port, type)
 
 
     this.addChannel = function(ch) {
+        if (this.channels[ch]) return this.channels[ch];
         this.channels[ch] = new Channel(this, ch);
         return this.channels[ch];
     }

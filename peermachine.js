@@ -1,11 +1,11 @@
 var portastic = require('portastic');
-var Server = require('./server.js')
+var IoServer = require('./ioserver.js')
 
 function PeerMachine()
 {
     var that = this;
     this.server = null;
-    this.processors = [];
+    this.modules = [];
 
     /**
     SERVERS
@@ -17,56 +17,67 @@ function PeerMachine()
             var port = ports[0];
             //port = ports[Math.floor(Math.random()*ports.length)];
             
-            that.server = new Server(port, 'KPi-peer');
+            that.server = new IoServer(port, 'KPi-peer');
 
-            // create Inform Channel
-            var radio = that.server.addChannel('/info');
+            // create Main Channel
+            var machine = that.server.addChannel('/peer').p2p();
 
-            // create P2P Channel
-            var p2p = that.server.addChannel('/peer').p2p();
+            // create Event Channel
+            var events_channel = that.server.addChannel('/event/peer');
 
-            // Route MACHINE input to attached processors, send State to radio
-            p2p.on('/input', that.process);
-            p2p.on('/state', radio.send);
+            // Route Machine input to modules
+            machine.on('/input', that.execute);
+
+            // Route Machine state events to event channel
+            machine.on('/state', events_channel.send);
             
             // inform new RADIO client of Machine status (known peers and methods)
-            radio.on('/state/newclient', function(ev, cli) {
+            events_channel.on('/state/newclient', function(ev, cli) {
                 
                 var status = { peers: {}, methods: that.getMethods() };
-                var peers = p2p.activePeers();
+                var peers = machine.activeLinks();
                 for (var name in peers) status.peers[name] = peers[name].url;
                 //console.log(status);
-                radio.send('/status', status, Object.keys(cli)[0]);
+                events_channel.send('/status', status, Object.keys(cli)[0]);
             });
 
-            p2p.on('/output', function(cmd, data) {
-                //console.log('OUTPUT: ', cmd, data);
-            })
+            // machine.on('/output', function(cmd, data) {
+            //     //console.log('OUTPUT: ', cmd, data);
+            // })
 
             // Declare Bonjour
             that.server.advertize();
+
+            // Give event channel to all attached modules
+            for (var m of that.modules) 
+                if (!m._events) m._events = that.server.addChannel('/event'+m._procid);
         });
     }
 
-    // attach new module as processor
+    // attach new module
     this.attach = function(id, object) {
+        if (id[0] != '/') id = '/'+id;
         object._procid = id;
-        this.processors.push(object);
+        this.modules.push(object);
+
+        // create event channel
+        if (that.server)
+            object._events = that.server.addChannel('/event'+id);
     }
 
-    // transmit command to processors
-    this.process = function(path, message) {
+    // transmit command to modules
+    this.execute = function(path, message) {
         var cmd = path.split('/');  // cmd[1] is the processor id, cmd[2] is the method call
         if (!cmd[2]) cmd[2] = 'default'; // default method if none provided
-        for (var proc of that.processors) 
+        for (var proc of that.modules) 
             if (proc._procid == '/'+cmd[1]) proc.do(cmd[2], message.data);
         //console.log('CMD: '+path+' '+JSON.stringify(message.data));
     }
 
-    // list available methods in processors
+    // list available methods in modules
     this.getMethods = function() {
         var methods = {};
-        for (var proc of this.processors) 
+        for (var proc of this.modules) 
             methods[ proc._procid ] = proc.description();
         return methods;
     }
