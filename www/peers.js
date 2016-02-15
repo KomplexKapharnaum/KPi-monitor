@@ -153,6 +153,10 @@ function Module(path, methods, output, peerurl) {
   this.dom = $('<div class="module"><h4>'+path+'</h4></div>');
   this.body = $('<div class="moduleBody"></div>').appendTo(this.dom);
 
+  this.dom.find('h4').on('click', function() {
+    that.body.toggle();
+  });
+
   this.addAction = function(action, act) {
     var field = $('<form class="action">'+act.label+'&#09;</form>').appendTo(this.body);
     field.data('path', path+'/'+action);
@@ -170,14 +174,23 @@ function Module(path, methods, output, peerurl) {
     });
   }
 
-  // register actions
+  // add actions
   for (var action in methods) 
     this.addAction( action, methods[action] );
+
+  // log area
+  var logdiv = $('<div class="log"><h4>LOG</h4></div>').appendTo(this.body);
+  this.logarea = $('<div class="logbody"></div>').appendTo(logdiv);
+  logdiv.find('h4').on('click', function() {
+    that.logarea.toggle();
+  });
+
 
   // attach event io
   this.input = connect(peerurl+'/event'+path);
   this.input.on('/stdout', function(message) {
-    console.info('/event'+path+'/stdout ',message.data);
+    //console.info('/event'+path+'/stdout ',message.data);
+    that.logarea.prepend(message.data+'<br />');
   });
 
   console.info('Created Module '+path);

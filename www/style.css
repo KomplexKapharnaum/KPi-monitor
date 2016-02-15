@@ -15,16 +15,13 @@ h3 {
 }
 
 /* DEAD */
-.peer .moduleslist .moduleBody {
-	display: none;
-}
 .peer h3 {
 	color: red;
 }
 
 /* ALIVE */
 .peerActive .moduleslist .moduleBody {
-	display: block;
+	/*display: block;*/
 }
 .peerActive h3 {
 	color: green;
@@ -46,6 +43,7 @@ h3 {
 .moduleBody {
 	padding: 5px;
 	background-color: #555;
+	display: none;
 }
 
 /*ACTION*/
@@ -54,4 +52,21 @@ h3 {
 	border: 1px solid #333;
 	margin: 2px;
 	padding: 2px;
+}
+/*ACTION*/
+.log {
+	display: block;
+	border: 1px solid #333;
+	margin: 2px;
+	padding: 2px;
+}
+
+.logbody {
+	height: 110px;
+	overflow: auto;
+	background-color: #AAA;
+	color: black;
+	padding: 2px;
+	font-size: 13px;
+	display:none;
 }
