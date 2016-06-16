@@ -11,8 +11,8 @@ var Modules = require('./modules.js');
 console.log('Starting PEERs Machine');
 var PeerMachine = require('./peermachine.js')();
 
-PeerMachine.attach( '/kxkmcard', Modules('kxkmcard') );
-//PeerMachine.attach( '/titreur', Modules('titreur') );
+//PeerMachine.attach( '/kxkmcard', Modules('kxkmcard') );
+PeerMachine.attach( '/titreur', Modules('titreur') );
 
 PeerMachine.start({ min : 9000, max : 10000 });
 
@@ -25,8 +25,8 @@ WebServer.start(PORT_WEBSERVER, BASEPATH);
 
 
 // function hello() {
-// 	PeerMachine.command('/echo', 'hello from '+PeerMachine.name());	
-// 	//PeerMachine.command('/logger', 'world');	
+// 	PeerMachine.command('/echo', 'hello from '+PeerMachine.name());
+// 	//PeerMachine.command('/logger', 'world');
 // }
 // setInterval(hello, 3000);
 
@@ -34,5 +34,3 @@ WebServer.start(PORT_WEBSERVER, BASEPATH);
 // 	console.log('-');
 // }
 // setInterval(hello2, 1000)
-
-

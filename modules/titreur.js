@@ -10,8 +10,8 @@ function Titreur ( module ) {
 			var cmd = 'texttitreur ';
 	        if (data.type) 	cmd += ' -type ' + data.type;
 	        if (data.speed) cmd += ' -speed ' + data.speed;
-	        if (data.line1) cmd += ' -line1 ' + data.line1.replace(' ', '_');
-	        if (data.line2) cmd += ' -line2 ' + data.line2.replace(' ', '_');
+	        if (data.line1) cmd += ' -line1 ' + data.line1.replace(/ /g, '_');
+	        if (data.line2) cmd += ' -line2 ' + data.line2.replace(/ /g, '_');
 			module.write(cmd);
 			//console.log('MODULE Titreur: '+cmd);
 		})
@@ -21,11 +21,11 @@ function Titreur ( module ) {
 		module.extends('titreurbig', (data) => {
 				var cmd = 'texttitreur ';
 		        cmd += ' -type b';
-		        if (data.line1b) cmd += ' -line1 ' + data.line1.replace(' ', '_');
+		        if (data.line1b) cmd += ' -line1 ' + data.line1b.replace(/ /g, '_');
 				module.write(cmd);
 				//console.log('MODULE Titreur: '+cmd);
 			})
-			.describe('Titreur', {line1b: 'text'});
+			.describe('Titreur BIG', {line1b: 'text'});
 
 	// INIT Card
 	module.write('initconfig -carteVolt ? -name ? -ip ? -version ? -titreurNbr 6 -manualmode ? -status ?');
