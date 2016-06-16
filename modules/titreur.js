@@ -17,6 +17,16 @@ function Titreur ( module ) {
 		})
 		.describe('Titreur', {line1: 'text', line2: 'text'});
 
+		// set Titreur
+		module.extends('titreurbig', (data) => {
+				var cmd = 'texttitreur ';
+		        cmd += ' -type b';
+		        if (data.line1b) cmd += ' -line1 ' + data.line1.replace(' ', '_');
+				module.write(cmd);
+				//console.log('MODULE Titreur: '+cmd);
+			})
+			.describe('Titreur', {line1b: 'text'});
+
 	// INIT Card
 	module.write('initconfig -carteVolt ? -name ? -ip ? -version ? -titreurNbr 6 -manualmode ? -status ?');
 	console.log('MODULE Titreur: init');
