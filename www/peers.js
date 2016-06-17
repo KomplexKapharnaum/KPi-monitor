@@ -173,7 +173,7 @@ function Module(path, methods, output, peerurl) {
     field.submit(function(e){
         e.preventDefault();
         var data = {};
-        for (var input of $(this).serializeArray()) data[ input.name ] = input.value;
+        for (var input of $(this).serializeArray()) {data[ input.name ] = input.value; input.value='';}
         output.emit( $(this).data('path'), {data:data});
     });
   }
