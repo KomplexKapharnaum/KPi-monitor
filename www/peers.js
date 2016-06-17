@@ -165,8 +165,9 @@ function Module(path, methods, output, peerurl) {
     field.data('path', path+'/'+action);
 
     // add parameters
-    for (var arg in act.args) field.append( widget(arg, act.args[arg]) );
-    $('<button type="submit" class="execute">GO</button>').appendTo(field);
+
+      for (var arg in act.args) field.append( widget(arg, act.args[arg]) );
+      if (act.args[act.args.length-1] == 'push') $('<button type="submit" class="execute">GO</button>').appendTo(field);
 
     // On validate action
     field.submit(function(e){

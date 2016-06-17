@@ -28,6 +28,7 @@ function Titreur ( module ) {
 				module.write(cmd);
 				//console.log('MODULE Titreur: '+cmd);
 				fs.appendFile('/dnc/media/titrage.txt', 'B' + data.line1b + '\n\r', function (err) { });
+				data.line1b='';
 
 			})
 			.describe('Titreur BIG', {line1b: 'text12'});
