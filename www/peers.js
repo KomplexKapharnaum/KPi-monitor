@@ -4,7 +4,10 @@ const DEVICENAME = 'inerface';
 
 function widget (id, type) {
   if (type == 'toggle') return $('<input type="checkbox" name="'+id+'" value="1" placeholder="'+id+'">');
+  else if (type == 'push') return $('<button type="submit" class="execute">'+id+'</button>');
   else if (type == 'text') return $('<br /><input type="text" name="'+id+'" size="20" value="" placeholder="'+id+'">');
+  else if (type == 'text24') return $('<br /><input type="text"  maxlength="24" name="'+id+'" size="20" value="" placeholder="'+id+'">');
+  else if (type == 'text12') return $('<br /><input type="text"  maxlength="12" name="'+id+'" size="20" value="" placeholder="'+id+'">');
   else if (type == 'int') return $('<input type="text" name="'+id+'" size="1" value="" placeholder="'+id+'">');
 }
 
@@ -54,9 +57,9 @@ function PeerCollection( placeholder ) {
     }
 
     this.alive = function() {
-      for (var n in this.peers) 
+      for (var n in this.peers)
         if (this.peers[n].alive()) return true;
-      return false; 
+      return false;
     }
 
     this.starter = function() {
@@ -98,12 +101,12 @@ function Peer(collec, name, url) {
 
     // modules
     for (var path in methods) {
-      
+
       var module = new Module(path, methods[path], that.io['/peer'], this.url);
       module.dom.appendTo(span);
     }
   }
-  
+
   //console.info('New Peer added: '+this.url);
 
   //Open EXECUTE channel
@@ -111,14 +114,14 @@ function Peer(collec, name, url) {
 
   // Open event channel
   this.io['/event/peer'] = connect(url+'/event/peer');
-  
+
   this.io['/event/peer'].on('accept', function(data) {
       that.isalive = true;
       that.onStateChange(that);
   });
 
   this.io['/event/peer'].on('/status', function(message) {
-    //console.info('STATUS '+JSON.stringify(message.data));  
+    //console.info('STATUS '+JSON.stringify(message.data));
     that.update(message.data.methods);
 
     if (message.data.peers.length > 0)
@@ -128,11 +131,11 @@ function Peer(collec, name, url) {
   this.io['/event/peer'].on('/newclient', function(message) {
     that.collec.addPeers(message.data);
   });
-  
+
   this.io['/event/peer'].on('/newserver', function(message) {
     that.collec.addPeers(message.data);
   });
-  
+
   this.io['/event/peer'].on('disconnect', function() {
     //console.info('Peer disconnected: '+that.url);
     that.isalive = false;
@@ -175,7 +178,7 @@ function Module(path, methods, output, peerurl) {
   }
 
   // add actions
-  for (var action in methods) 
+  for (var action in methods)
     this.addAction( action, methods[action] );
 
   // log area
@@ -200,8 +203,3 @@ function Module(path, methods, output, peerurl) {
 $(function() {
   var peerCollection = new PeerCollection( $('#viewport') );
 });
-
-
-
-
-

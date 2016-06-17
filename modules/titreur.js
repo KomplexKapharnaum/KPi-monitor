@@ -18,7 +18,7 @@ function Titreur ( module ) {
 
 			//console.log('MODULE Titreur: '+cmd);
 		})
-		.describe('Titreur', {line1: 'text', line2: 'text'});
+		.describe('Titreur', {line1: 'text24', line2: 'text24'});
 
 		// set Titreur
 		module.extends('titreurbig', (data) => {
@@ -30,7 +30,15 @@ function Titreur ( module ) {
 				fs.appendFile('/dnc/media/titrage.txt', 'B' + data.line1b + '\n\r', function (err) { });
 
 			})
-			.describe('Titreur BIG', {line1b: 'text'});
+			.describe('Titreur BIG', {line1b: 'text12'});
+
+			module.extends('titreur', (data) => {
+					var cmd = 'texttitreur  -line1 __ -line2 __';
+					module.write(cmd);
+
+					//console.log('MODULE Titreur: '+cmd);
+				})
+				.describe('Titreur clear', {clear: 'push'});
 
 	// INIT Card
 	module.write('initconfig -carteVolt ? -name ? -ip ? -version ? -titreurNbr 6 -manualmode ? -status ?');
