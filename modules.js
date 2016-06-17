@@ -14,7 +14,7 @@ function action (path, fn) {
 
 function BaseModule () {
 	var that = this;
-	
+
 	this._methods = {};
 	this._process = null;
 	this._events = null;
@@ -38,11 +38,12 @@ function BaseModule () {
 		return desc;
 	}
 
-	this.setProcess = function(cmd, args) 
+	this.setProcess = function(cmd, args)
 	{
 		this._process = spawn(cmd, args);
 		this._process.stdin.setEncoding('utf-8');
 		this._process.stdout.on('data', that.read);
+		this._process.stderr.on('data', that.readerr)
 	}
 
 	// Write to process
@@ -55,6 +56,13 @@ function BaseModule () {
 		msg = String.fromCharCode.apply(null, new Uint16Array(msg));
 		that.emit('/stdout', msg);
 		//console.log('module says: '+msg);
+	}
+
+	// Read from process
+	this.readerr = function(msg) {
+		msg = String.fromCharCode.apply(null, new Uint16Array(msg));
+		//that.emit('/stdout', msg);
+		console.log('module err says: '+msg);
 	}
 
 	// Default action
