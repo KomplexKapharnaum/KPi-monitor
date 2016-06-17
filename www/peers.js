@@ -175,7 +175,7 @@ function Module(path, methods, output, peerurl) {
         var data = {};
         for (var input of $(this).serializeArray()) data[ input.name ] = input.value;
         output.emit( $(this).data('path'), {data:data});
-        $( this "input:text" ).val('');
+        $(this).find("input:text" ).val('');
     });
   }
 
