@@ -175,7 +175,7 @@ function Module(path, methods, output, peerurl) {
         var data = {};
         for (var input of $(this).serializeArray()) data[ input.name ] = input.value;
         output.emit( $(this).data('path'), {data:data});
-          for (var texttoclean of $(this).getElementsByClassName('clearaftersubmit')) texttoclean.value='';
+        $( "form input:text" ).val('');
     });
   }
 
