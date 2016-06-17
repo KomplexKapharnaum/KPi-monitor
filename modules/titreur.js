@@ -32,7 +32,7 @@ function Titreur ( module ) {
 			})
 			.describe('Titreur BIG', {line1b: 'text12'});
 
-			module.extends('titreur', (data) => {
+			module.extends('titreurclear', (data) => {
 					var cmd = 'texttitreur  -line1 __ -line2 __';
 					module.write(cmd);
 
