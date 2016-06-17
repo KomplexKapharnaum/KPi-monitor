@@ -167,14 +167,15 @@ function Module(path, methods, output, peerurl) {
     // add parameters
 
       for (var arg in act.args) field.append( widget(arg, act.args[arg]) );
-      if (act.args[act.args.length-1] == 'push') $('<button type="submit" class="execute">GO</button>').appendTo(field);
+      if (act.args[0] != 'push') $('<button type="submit" class="execute">GO</button>').appendTo(field);
 
     // On validate action
     field.submit(function(e){
         e.preventDefault();
         var data = {};
-        for (var input of $(this).serializeArray()) {data[ input.name ] = input.value; input.value='';}
+        for (var input of $(this).serializeArray()) data[ input.name ] = input.value;
         output.emit( $(this).data('path'), {data:data});
+          for (var texttoclean of $(this).getElementsByClassName('clearaftersubmit')) texttoclean.value='';
     });
   }
 
