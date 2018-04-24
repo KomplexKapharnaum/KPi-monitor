@@ -25,7 +25,7 @@ function P2P(channel) {
 
         var m = [];
         for (var name in channel.masters)
-            if (!status || status == channel.masters[name].status) 
+            if (!status || status == channel.masters[name].status)
                 if (!type || type == channel.masters[name].type) {
                     peers[name] = channel.masters[name];
                     m.push(name);
@@ -33,7 +33,7 @@ function P2P(channel) {
 
         var s = [];
         for (var name in channel.slaves)
-            if (!status || status == channel.slaves[name].status) 
+            if (!status || status == channel.slaves[name].status)
                 if (!type || type == channel.slaves[name].type) {
                     peers[name] = channel.slaves[name];
                     s.push(name);
@@ -72,7 +72,7 @@ function P2P(channel) {
             }
         socketio_wildcard(socketio_client.Manager)(master.io);
 
-        master.io.on('connect', function(){ master.io.emit('iam', 
+        master.io.on('connect', function(){ master.io.emit('iam',
             {name: channel.device.name, url: channel.device.url, type: channel.device.type}); });
 
         master.io.on('drop',    function() { master.drop() });
@@ -126,7 +126,7 @@ function Channel(mainserver, namespace) {
         // Slave is gone
         client.on('disconnect', function(){
             var s = that.find(client);
-            if (s) delete that.slaves[ s.name ];    
+            if (s) delete that.slaves[ s.name ];
         });
     });
 
@@ -157,7 +157,7 @@ function Channel(mainserver, namespace) {
     }
 
     this.emitEvent = function(event, data) {
-        for (var ev in this.callbacks) 
+        for (var ev in this.callbacks)
             if (event.indexOf(ev) === 0) {
                 var msg = '/';
                 if (ev.length < event.length) msg = event.substring(ev.length);
@@ -183,14 +183,15 @@ function Channel(mainserver, namespace) {
     }
 
     this.send = function(cmd, payload, to) {
-        
+        cmd = cmd.replace('.', '/')
+        if (cmd[0] != '/') cmd = '/'+cmd;
         if (cmd[0] != '/') console.error('Invalid command: '+cmd);
-        
+
         var message = {
             from: that.device.name,
             channel: that.channel,
             data: payload,
-            to: to 
+            to: to
         };
 
         var peers = that.getClients(STATE_ACCEPTED);
@@ -216,7 +217,7 @@ function Channel(mainserver, namespace) {
     return that;
 }
 
-function Server(port, type) 
+function Server(port, type)
 {
     var that = this;
     this.type = type;

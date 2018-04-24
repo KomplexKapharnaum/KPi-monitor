@@ -78,7 +78,6 @@ function PeerCollection( placeholder ) {
     }
 
     this.starter();
-    //programmation2@klein-decoupe-service.fr
 }
 
 /*****************
